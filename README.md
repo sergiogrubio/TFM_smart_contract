@@ -1,21 +1,22 @@
-# testdex
+# testDEX smart contract
 
-A simple DEX in Elrond network. University master's degree final project (cybersecurity/UOC).
-Directories:
+testDEX is a simple DEX using the Elrond network. University master's degree final project (cybersecurity/UOC).
 
-## contracts
+In this repo you'll find a smart contract named testdex.rs (a free AMM protocol implementation).
 
-In this directory you'll find the smart contracts. There is only one called TestDEX (testdex.rs).
+To build the smart contract go to ./contracts/testdex and run:
 
-## dapp
-
-Containing the dApp implemented using TypeScrypt and React. The dApp is based on https://github.com/ElrondNetwork/dapp-template (by The Elrond Team). If a file is very similar to this source I'll add a comment at the beginning of the source code.
-
-## latex
-
-The latex files with the main document (language catalan).
-
-If you get this error "I couldn't open style file IEEEtran.bst":
 ```
-sudo apt install texlive-publishers
+erdpy contract build
 ```
+
+To deploy it:
+
+```
+erdpy contract deploy --pem="~/wallet/wallet1.pem" \
+  --recall-nonce --gas-limit=100000000 --project=. \
+  --proxy="https://devnet-gateway.elrond.com" \
+  --chain="D" --arguments 0x05 --send
+```
+
+Note that ~/wallet/wallet1.pem is the private key of a user in the devnet network and the argument is required by the smart contract constructor (0.05 fee).
