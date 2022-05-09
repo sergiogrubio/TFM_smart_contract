@@ -1,0 +1,15 @@
+[package]
+name = "testdex"
+version = "0.0.0"
+authors = [ "me",]
+edition = "2018"
+publish = false
+
+[lib]
+path = "src/testdex.rs"
+
+[dependencies.elrond-wasm]
+version = "0.30.0"
+
+[dev-dependencies.elrond-wasm-debug]
+version = "0.30.0"
