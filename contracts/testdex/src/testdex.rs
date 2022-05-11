@@ -117,24 +117,23 @@ pub trait TestDEX {
     #[endpoint(claimLiquidityToken)]
     #[only_owner]
     #[payable("*")]
-    fn claim_liquidity_token(&self, token: &TokenIdentifier) -> BigUint {
+    fn claim_liquidity_token(&self, token: &TokenIdentifier) -> SCResult<()>{
 
+        let funds = self.liquidity_egld(&token).get();
+        require!(funds > 0u32, "cannot claim 0 funds");
         let owner = self.blockchain().get_owner_address();
-        let funds = self.liquidity_token(&token).get();
 
-        if funds > 0u32 {
-            if self.status(&token) == Status::Successful {
-                // remove token from the tokens vector
-                let mut vec_tokens = self.tokens().get();
-                let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
-                vec_tokens.remove(index);
-                self.tokens().set(vec_tokens);
-            }
-            self.liquidity_token(&token).clear();
-            self.send().direct(&owner, &token, 0, &funds, &[]);
+        if self.status(&token) == Status::Successful {
+            // remove token from the tokens vector
+            let mut vec_tokens = self.tokens().get();
+            let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
+            vec_tokens.remove(index);
+            self.tokens().set(vec_tokens);
         }
+        self.liquidity_token(&token).clear();
+        self.send().direct(&owner, &token, 0, &funds, &[]);
 
-        funds
+        Ok(())
 
     }
 
@@ -197,24 +196,24 @@ pub trait TestDEX {
     #[endpoint(claimLiquidityEgld)]
     #[only_owner]
     #[payable("*")]
-    fn claim_liquidity_egld(&self, token: &TokenIdentifier) -> BigUint {
-        
-        let owner = self.blockchain().get_owner_address();
+    fn claim_liquidity_egld(&self, token: &TokenIdentifier) -> SCResult<()> {
+
         let funds = self.liquidity_egld(&token).get();
+        require!(funds > 0u32, "cannot claim 0 funds");
+        let owner = self.blockchain().get_owner_address();
 
-        if funds > 0u32 {
-            if self.status(&token) == Status::Successful {
-                // remove token from the tokens vector
-                let mut vec_tokens = self.tokens().get();
-                let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
-                vec_tokens.remove(index);
-                self.tokens().set(vec_tokens);
-            }
-            self.liquidity_egld(&token).clear();
-            self.send().direct(&owner, &TokenIdentifier::egld(), 0, &funds, &[]);
+        if self.status(&token) == Status::Successful {
+            // remove token from the tokens vector
+            let mut vec_tokens = self.tokens().get();
+            let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
+            vec_tokens.remove(index);
+            self.tokens().set(vec_tokens);
         }
+        self.liquidity_egld(&token).clear();
+        self.send().direct(&owner, &TokenIdentifier::egld(), 0, &funds, &[]);
 
-        funds
+        Ok(())
+
     }
 
     // status of a pair for swapping
@@ -248,17 +247,16 @@ pub trait TestDEX {
     #[endpoint(claimEarnings)]
     #[only_owner]
     #[payable("*")]
-    fn claim_earnings(&self, token: &TokenIdentifier) -> BigUint {
+    fn claim_earnings(&self, token: &TokenIdentifier) -> SCResult<()> {
         
+        let funds = self.liquidity_egld(&token).get();
+        require!(funds > 0u32, "cannot claim 0 funds");
         let owner = self.blockchain().get_owner_address();
-        let funds = self.earnings(&token).get();
 
-        if funds > 0u32 {
-            self.earnings(&token).clear();
-            self.send().direct(&owner, &token, 0, &funds, &[]);
-        }
+        self.earnings(&token).clear();
+        self.send().direct(&owner, &token, 0, &funds, &[]);
 
-        funds
+        Ok(())
 
     }
 
