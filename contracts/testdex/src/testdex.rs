@@ -90,12 +90,12 @@ pub trait TestDEX {
     #[payable("*")]
     fn add_liquidity_token(&self) -> SCResult<()> {
         
+        let (payment, token) = self.call_value().payment_token_pair();
         let state = self.status(&token);
         require!(
             state == Status::Funding,
             "Pair already funded."
         );
-        let (payment, token) = self.call_value().payment_token_pair();
 
         self.liquidity_token(&token).update(|liquidity_token| *liquidity_token += payment);
 
