@@ -89,14 +89,13 @@ pub trait TestDEX {
     #[only_owner]
     #[payable("*")]
     fn add_liquidity_token(&self) -> SCResult<()> {
-
-        let (payment, token) = self.call_value().payment_token_pair();
-        let state = self.status(&token);
         
+        let state = self.status(&token);
         require!(
             state == Status::Funding,
             "Pair already funded."
         );
+        let (payment, token) = self.call_value().payment_token_pair();
 
         self.liquidity_token(&token).update(|liquidity_token| *liquidity_token += payment);
 
@@ -143,13 +142,12 @@ pub trait TestDEX {
     #[payable("*")]
     fn add_liquidity_egld(&self, token: &TokenIdentifier) -> SCResult<()> {
         
-        let payment = self.call_value().egld_value();
         let funded = self.status(&token);
-
         require!(
             funded == Status::Funding,
             "Pair already funded."
         );
+        let payment = self.call_value().egld_value();
         
         self.liquidity_egld(token).update(|liquidity_egld| *liquidity_egld += payment);
 
