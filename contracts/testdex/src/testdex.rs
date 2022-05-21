@@ -38,6 +38,8 @@ pub trait TestDEX {
     // tokens with pairs ready to swap
     // I choose implement it this way for gas efficiency
     // https://docs.elrond.com/developers/best-practices/storage-mappers/#singlevaluemapper-vs-mapmapper
+    // another option is to get the tokens of the smart contract with the Elrond's API Rest,
+    // checking before trading that K > 0 (pair status Sucessful)
     #[view(getTokens)]
     #[storage_mapper("tokens")]
     fn tokens(&self) -> SingleValueMapper<ManagedVec<TokenIdentifier>>;
@@ -128,6 +130,8 @@ pub trait TestDEX {
             let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
             vec_tokens.remove(index);
             self.tokens().set(vec_tokens);
+            // set initial K to 0
+            self.initial_k(&token).set(BigUint::zero());
         }
         self.liquidity_token(&token).clear();
         self.send().direct(&owner, &token, 0, &funds, &[]);
@@ -206,6 +210,8 @@ pub trait TestDEX {
             let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
             vec_tokens.remove(index);
             self.tokens().set(vec_tokens);
+            // set initial K to 0
+            self.initial_k(&token).set(BigUint::zero());
         }
         self.liquidity_egld(&token).clear();
         self.send().direct(&owner, &TokenIdentifier::egld(), 0, &funds, &[]);
@@ -335,7 +341,7 @@ pub trait TestDEX {
 
         denominator
     }
-
+              
     // in: quantity token
     // out: quantity EGLD (without fee)
     #[view(priceTokenEgldNoFee)]

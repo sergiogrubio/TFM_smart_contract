@@ -1,5 +1,5 @@
 ######### CONTRACT_ADDRESS
-export CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqv9kru8n83j240ry4fu82cgnz4mcr5m7ymq2qk0wtvk
+export CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqqe97sahterxyam79fa7qhj52cafqqjq8mq2q4l3d99
 
 ######### DEPLOY
 erdpy contract deploy --pem="~/wallet/wallet1.pem" --recall-nonce --gas-limit=100000000 --project=. --proxy="https://devnet-gateway.elrond.com" --chain="D" --arguments 0x05 --send
