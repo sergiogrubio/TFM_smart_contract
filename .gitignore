@@ -23,3 +23,12 @@ Cargo.lock
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+#wallets
+**/wallet/**
+**/wallets/**
+**/*.pem
+**/wallets/*.json
+**/wallet/*.json
+**/wallets/*.txt
+**/wallet/*.txt
