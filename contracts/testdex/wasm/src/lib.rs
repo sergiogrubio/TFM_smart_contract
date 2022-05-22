@@ -13,7 +13,6 @@ elrond_wasm_node::wasm_endpoints! {
         claimEarnings
         claimLiquidityEgld
         claimLiquidityToken
-        egldToToken
         feeEgldToken
         feeTokenEgld
         getEarnings
@@ -21,16 +20,18 @@ elrond_wasm_node::wasm_endpoints! {
         getInitialK
         getLiquidityEgld
         getLiquidityToken
-        getTokens
         priceEgldToken
+        priceEgldTokenDenominator
         priceEgldTokenNoFee
+        priceEgldTokenNumerator
         priceTokenEgld
         priceTokenEgldDenominator
         priceTokenEgldNoFee
         priceTokenEgldNumerator
         ratio
         status
-        tokenToEgld
+        swapEgldForToken
+        swapTokenForEgld
     )
 }
 

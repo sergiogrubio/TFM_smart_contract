@@ -36,13 +36,13 @@ pub trait TestDEX {
     fn liquidity_egld(&self, token: &TokenIdentifier) -> SingleValueMapper<BigUint>;
 
     // tokens with pairs ready to swap
-    // I choose implement it this way for gas efficiency
+    // I chose implement it this way for gas efficiency
     // https://docs.elrond.com/developers/best-practices/storage-mappers/#singlevaluemapper-vs-mapmapper
-    // another option is to get the tokens of the smart contract with the Elrond's API Rest,
+    // finally, I chose the option is to get the tokens of the smart contract with the Elrond's API Rest,
     // checking before trading that K > 0 (pair status Sucessful)
-    #[view(getTokens)]
-    #[storage_mapper("tokens")]
-    fn tokens(&self) -> SingleValueMapper<ManagedVec<TokenIdentifier>>;
+    // #[view(getTokens)]
+    // #[storage_mapper("tokens")]
+    // fn tokens(&self) -> SingleValueMapper<ManagedVec<TokenIdentifier>>;
 
     // K constant for a pair
     #[view(getInitialK)]
@@ -105,9 +105,9 @@ pub trait TestDEX {
             let initial_k = self.calculate_k(&token);
             self.initial_k(&token).set(&initial_k);
             // add token to the tokens vector
-            let mut vec_tokens = self.tokens().get();
-            vec_tokens.push(token);
-            self.tokens().set(vec_tokens);
+            // let mut vec_tokens = self.tokens().get();
+            // vec_tokens.push(token);
+            // self.tokens().set(vec_tokens);
         }
 
         Ok(())
@@ -120,16 +120,16 @@ pub trait TestDEX {
     #[payable("*")]
     fn claim_liquidity_token(&self, token: &TokenIdentifier) -> SCResult<()>{
 
-        let funds = self.liquidity_egld(&token).get();
+        let funds = self.liquidity_token(&token).get();
         require!(funds > 0u32, "cannot claim 0 funds");
         let owner = self.blockchain().get_owner_address();
 
         if self.status(&token) == Status::Successful {
             // remove token from the tokens vector
-            let mut vec_tokens = self.tokens().get();
-            let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
-            vec_tokens.remove(index);
-            self.tokens().set(vec_tokens);
+            // let mut vec_tokens = self.tokens().get();
+            // let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
+            // vec_tokens.remove(index);
+            // self.tokens().set(vec_tokens);
             // set initial K to 0
             self.initial_k(&token).set(BigUint::zero());
         }
@@ -159,9 +159,9 @@ pub trait TestDEX {
             let initial_k = self.calculate_k(&token);
             self.initial_k(&token).set(&initial_k);
             // add element to the tokens vector
-            let mut vec_tokens = self.tokens().get();
-            vec_tokens.push(token.clone());
-            self.tokens().set(vec_tokens);
+            // let mut vec_tokens = self.tokens().get();
+            // vec_tokens.push(token.clone());
+            // self.tokens().set(vec_tokens);
         }
 
         Ok(())
@@ -206,10 +206,10 @@ pub trait TestDEX {
 
         if self.status(&token) == Status::Successful {
             // remove token from the tokens vector
-            let mut vec_tokens = self.tokens().get();
-            let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
-            vec_tokens.remove(index);
-            self.tokens().set(vec_tokens);
+            // let mut vec_tokens = self.tokens().get();
+            // let index = vec_tokens.iter().position(|x| *x == token.clone()).unwrap();
+            // vec_tokens.remove(index);
+            // self.tokens().set(vec_tokens);
             // set initial K to 0
             self.initial_k(&token).set(BigUint::zero());
         }
@@ -253,7 +253,7 @@ pub trait TestDEX {
     #[payable("*")]
     fn claim_earnings(&self, token: &TokenIdentifier) -> SCResult<()> {
         
-        let funds = self.liquidity_egld(&token).get();
+        let funds = self.earnings(&token).get();
         require!(funds > 0u32, "cannot claim 0 funds");
         let owner = self.blockchain().get_owner_address();
 
@@ -277,6 +277,28 @@ pub trait TestDEX {
         let denominator: BigUint = qty_egld * 1000u32 + qty * (1000u32 - fee);
 
         numerator / denominator
+    }
+
+    // calculte price of qty token in EGLD with fee, numerator only
+    #[view(priceEgldTokenNumerator)]
+    fn price_egld_token_numerator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+        
+        let qty_token = self.liquidity_token(&token).get();
+        let fee = self.fee().get();
+        let numerator: BigUint = qty_token * qty * (1000u32 - fee);
+
+        numerator 
+    }
+
+    // calculte price of qty token in EGLD with fee, denominator only
+    #[view(priceEgldTokenDenominator)]
+    fn price_egld_token_denominator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+        
+        let qty_egld = self.liquidity_egld(&token).get();
+        let fee = self.fee().get();
+        let denominator: BigUint = qty_egld * 1000u32 + qty * (1000u32 - fee);
+
+        denominator
     }
 
     // calculte price of qty token in EGLD without fee
@@ -382,9 +404,9 @@ pub trait TestDEX {
             
     }
 
-    #[endpoint(egldToToken)]
+    #[endpoint(swapTokenForEgld)]
     #[payable("*")]
-    fn egld_to_token(&self, token: &TokenIdentifier) ->  SCResult<()> {
+    fn swap_token_for_egld(&self, token: &TokenIdentifier) ->  SCResult<()> {
         
         let state = self.status(&token);
 
@@ -434,9 +456,9 @@ pub trait TestDEX {
         Ok(())
     }
 
-    #[endpoint(tokenToEgld)]
+    #[endpoint(swapEgldForToken)]
     #[payable("*")]
-    fn token_to_egld(&self) -> SCResult<()> {
+    fn swap_egld_for_token(&self) -> SCResult<()> {
 
         let (payment, token) = self.call_value().payment_token_pair();
 
