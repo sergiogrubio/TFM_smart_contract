@@ -222,7 +222,7 @@ getRatio() {
         --arguments ${TOKEN}
 }
 
-getEarnings() {
+getEarningsEgld() {
     echo "***Snippet: Get earnings in TOKEN"
 
     erdpy --verbose contract query ${ADDRESS} \
@@ -231,13 +231,13 @@ getEarnings() {
         --arguments ${TOKEN}
 }
 
-getEarnings() {
-    echo "***Snippet: Get earnings in TOKEN"
+getEarningsToken() {
+    echo "***Snippet: Get earnings in EGLD"
 
     erdpy --verbose contract query ${ADDRESS} \
         --proxy=${PROXY} \
         --function=getEarnings \
-        --arguments ${TOKEN}
+        --arguments ${TOKEN_EGLD}
 }
 
 claimEarningsToken() {

@@ -62,8 +62,7 @@ pub trait TestDEX {
     // constructor
     #[init]
     fn init(&self, fee: u32) {
-        // values from 0 to 100
-        // i.e., value 5 is 0.05 fee
+        // i.e., value 5 is 0.5 fee
         self.fee().set(&fee);
     }
 
@@ -267,6 +266,7 @@ pub trait TestDEX {
     // calculte price of qty token in EGLD with fee
     // in: quantity EGLD
     // out: quantity token (with fee subtracted)
+    // get how many EGLD I need to get qty token
     #[view(priceEgldToken)]
     fn price_egld_token(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
         
@@ -309,10 +309,28 @@ pub trait TestDEX {
         
         let qty_egld = self.liquidity_egld(&token).get();
         let qty_token = self.liquidity_token(&token).get();
-        let numerator: BigUint =  qty_token * 1000u32 * qty;
-        let denominator: BigUint = qty_egld * 1000u32 + qty * 1000u32;
+        let numerator: BigUint =  qty_token * qty;
+        let denominator: BigUint = qty_egld + qty;
 
         numerator / denominator
+    }
+
+    #[view(priceEgldTokenNoFeeNumerator)]
+    fn price_egld_token_no_fee_numerator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+        
+        let qty_token = self.liquidity_token(&token).get();
+        let numerator: BigUint =  qty_token * qty;
+
+        numerator
+    }
+
+    #[view(priceEgldTokenNoFeeDenominator)]
+    fn price_egld_token_no_fee_denominator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+        
+        let qty_egld = self.liquidity_egld(&token).get();
+        let denominator: BigUint = qty_egld + qty;
+
+        denominator
     }
 
     // calcute fee to pay in qty token
@@ -329,6 +347,7 @@ pub trait TestDEX {
     }
 
     // calculate price of qty EGLD in token with fee
+    // get how many tokens I need to get qty EGLD
     #[view(priceTokenEgld)]
     fn price_token_egld(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
         
@@ -371,11 +390,30 @@ pub trait TestDEX {
 
         let qty_egld = self.liquidity_egld(&token).get();
         let qty_token = self.liquidity_token(&token).get();
-        let numerator: BigUint = qty_egld * 1000u32 * qty;
-        let denominator: BigUint = qty_token * 1000u32 + qty * 1000u32;
+        let numerator: BigUint = qty_egld * qty;
+        let denominator: BigUint = qty_token + qty;
 
         numerator / denominator
 
+    }
+
+    #[view(priceTokenEgldNoFeeNumerator)]
+    fn price_token_egld_no_fee_numerator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+
+        let qty_egld = self.liquidity_egld(&token).get();
+        let numerator: BigUint = qty_egld * qty;
+
+        numerator 
+    }
+
+    #[view(priceTokenEgldNoFeeDenominator)]
+    fn price_token_egld_no_fee_denominator(&self, token: &TokenIdentifier, qty: &BigUint) -> BigUint {
+
+        let qty_token = self.liquidity_token(&token).get();
+
+        let denominator: BigUint = qty_token + qty;
+
+        denominator
     }
 
     #[view(feeTokenEgld)]
@@ -404,9 +442,9 @@ pub trait TestDEX {
             
     }
 
-    #[endpoint(swapTokenForEgld)]
+    #[endpoint(swapEgldForToken)]
     #[payable("*")]
-    fn swap_token_for_egld(&self, token: &TokenIdentifier) ->  SCResult<()> {
+    fn swap_egld_for_token(&self, token: &TokenIdentifier) ->  SCResult<()> {
         
         let state = self.status(&token);
 
@@ -456,9 +494,9 @@ pub trait TestDEX {
         Ok(())
     }
 
-    #[endpoint(swapEgldForToken)]
+    #[endpoint(swapTokenForEgld)]
     #[payable("*")]
-    fn swap_egld_for_token(&self) -> SCResult<()> {
+    fn swap_token_for_egld(&self) -> SCResult<()> {
 
         let (payment, token) = self.call_value().payment_token_pair();
 

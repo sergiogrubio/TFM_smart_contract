@@ -23,10 +23,14 @@ elrond_wasm_node::wasm_endpoints! {
         priceEgldToken
         priceEgldTokenDenominator
         priceEgldTokenNoFee
+        priceEgldTokenNoFeeDenominator
+        priceEgldTokenNoFeeNumerator
         priceEgldTokenNumerator
         priceTokenEgld
         priceTokenEgldDenominator
         priceTokenEgldNoFee
+        priceTokenEgldNoFeeDenominator
+        priceTokenEgldNoFeeNumerator
         priceTokenEgldNumerator
         ratio
         status
