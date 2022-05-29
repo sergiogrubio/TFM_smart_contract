@@ -368,7 +368,6 @@ pub trait TestDEX {
         let fee = self.fee().get();
         let numerator: BigUint = qty_egld * qty * (1000u32 - fee);
 
-
         numerator
     }
 
@@ -442,6 +441,9 @@ pub trait TestDEX {
             
     }
 
+    // Swap egld for token
+    // in: quantity egld, token that identifies the pair
+    // out: quantity token (with fee subtracted) sent to the customer's wallet
     #[endpoint(swapEgldForToken)]
     #[payable("*")]
     fn swap_egld_for_token(&self, token: &TokenIdentifier) ->  SCResult<()> {
@@ -470,30 +472,52 @@ pub trait TestDEX {
         self.liquidity_egld(&token).update(|liquidity_egld| *liquidity_egld += &payment);
         self.liquidity_token(&token).update(|liquidity_token| *liquidity_token -= &token_no_fee);
         self.earnings(&token).update(|earnings| *earnings += &earning_token);
-
+        
         let new_k = self.calculate_k(&token);
-        
-        // adjusting K constant
-        if new_k != initial_k {
 
-            let ratio = self.ratio(&token);
-            
-            if new_k > initial_k {
-                self.liquidity_token(&token).update(|liquidity_token| *liquidity_token -= ratio.clone());
-                self.earnings(&token).update(|earnings| *earnings += ratio.clone());
-
+        // Adjusting K constant
+        // I correct it adjusting the token side of the pair
+        // I get the correction from the earnings, another option
+        // is to get it from the tokens sent to the customer's wallet
+        if new_k > initial_k {
+            let new_liq_egld = self.liquidity_egld(&token).get();
+            let new_liq_token = self.liquidity_token(&token).get();
+            let earnings_token = self.earnings(&token).get();
+            let liq_token_corrected = &new_k / &new_liq_egld;
+            let amount_correction = &liq_token_corrected - &new_liq_token;
+            let final_correction;
+            if amount_correction >= new_liq_token {
+                final_correction = amount_correction;
             } else {
-                self.liquidity_token(&token).update(|liquidity_token| *liquidity_token += ratio.clone());
-                self.earnings(&token).update(|earnings| *earnings -= ratio.clone());
+                final_correction = earnings_token;
             }
+            self.liquidity_token(&token).update(|liquidity_token| *liquidity_token -= final_correction.clone());
+            self.earnings(&token).update(|earnings| *earnings += final_correction.clone());
+        } else if new_k < initial_k {
+            let new_liq_egld = self.liquidity_egld(&token).get();
+            let new_liq_token = self.liquidity_token(&token).get();
+            let earnings_token = self.earnings(&token).get();
+            let liq_token_corrected = &new_k / &new_liq_egld;
+            let amount_correction = &new_liq_token - &liq_token_corrected;
+            let final_correction;
+            if amount_correction >= new_liq_token {
+                final_correction = amount_correction;
+            } else {
+                final_correction = earnings_token;
+            }
+            self.liquidity_token(&token).update(|liquidity_token| *liquidity_token += final_correction.clone());
+            self.earnings(&token).update(|earnings| *earnings -= final_correction.clone());
         }
-        
+
         // send token bought (token_fee) to customer address
         self.send().direct(&caller, &token, 0, &token_fee, &[]);
 
         Ok(())
     }
 
+    // Swap token for egld
+    // in: quantity token, token that identifies the pair
+    // out: quantity egld (with fee subtracted) sent to the customer's wallet
     #[endpoint(swapTokenForEgld)]
     #[payable("*")]
     fn swap_token_for_egld(&self) -> SCResult<()> {
@@ -519,20 +543,40 @@ pub trait TestDEX {
         self.earnings(&TokenIdentifier::egld()).update(|earnings| *earnings += &earning_egld);
         
         let new_k = self.calculate_k(&token);
-        
-                
-        // adjusting K constant
-        if new_k != initial_k {
 
-            let ratio = self.ratio(&token);
-            
-            if new_k > initial_k {
-                self.liquidity_egld(&token).update(|liquidity_egld| *liquidity_egld -= ratio.clone());
-                self.earnings(&TokenIdentifier::egld()).update(|earnings| *earnings += ratio.clone());
+
+        // Adjusting K constant
+        // I correct it adjusting the egld side of the pair
+        // I get the correction from the earnings, another option
+        // is to get it from the egld sent to the customer's wallet
+        if new_k > initial_k {
+            let new_liq_egld = self.liquidity_egld(&token).get();
+            let new_liq_token = self.liquidity_token(&token).get();
+            let earnings_egld =  self.earnings(&TokenIdentifier::egld()).get();
+            let liq_egld_corrected = &new_k / &new_liq_token;
+            let amount_correction = &liq_egld_corrected - &new_liq_egld;
+            let final_correction;
+            if amount_correction >= new_liq_egld {
+                final_correction = amount_correction;
             } else {
-                self.liquidity_egld(&token).update(|liquidity_egld| *liquidity_egld += ratio.clone());
-                self.earnings(&TokenIdentifier::egld()).update(|earnings| *earnings -= ratio.clone());
+                final_correction = earnings_egld;
             }
+            self.liquidity_egld(&token).update(|liquidity_egld| *liquidity_egld -= final_correction.clone());
+            self.earnings(&TokenIdentifier::egld()).update(|earnings| *earnings += final_correction.clone());
+        } else if new_k < initial_k {
+            let new_liq_egld = self.liquidity_egld(&token).get();
+            let new_liq_token = self.liquidity_token(&token).get();
+            let earnings_egld =  self.earnings(&TokenIdentifier::egld()).get();
+            let liq_egld_corrected = &new_k / &new_liq_token;
+            let amount_correction = &new_liq_egld - &liq_egld_corrected;
+            let final_correction;
+            if amount_correction >= new_liq_egld {
+                final_correction = amount_correction;
+            } else {
+                final_correction = earnings_egld;
+            }
+            self.liquidity_egld(&token).update(|liquidity_egld| *liquidity_egld += final_correction.clone());
+            self.earnings(&TokenIdentifier::egld()).update(|earnings| *earnings -= final_correction.clone());     
         }
 
         // send token bought (token_fee) to customer address
