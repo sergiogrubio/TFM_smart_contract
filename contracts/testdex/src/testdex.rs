@@ -500,7 +500,7 @@ pub trait TestDEX {
             let liq_token_corrected = &new_k / &new_liq_egld;
             let amount_correction = &new_liq_token - &liq_token_corrected;
             let final_correction;
-            if amount_correction >= new_liq_token {
+            if amount_correction >= earnings_token {
                 final_correction = amount_correction;
             } else {
                 final_correction = earnings_token;
@@ -556,7 +556,7 @@ pub trait TestDEX {
             let liq_egld_corrected = &new_k / &new_liq_token;
             let amount_correction = &liq_egld_corrected - &new_liq_egld;
             let final_correction;
-            if amount_correction >= new_liq_egld {
+            if amount_correction >= earnings_egld {
                 final_correction = amount_correction;
             } else {
                 final_correction = earnings_egld;
