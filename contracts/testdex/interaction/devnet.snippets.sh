@@ -1,4 +1,4 @@
-OWNER_PEM="./wallet/wallet1.pem"
+OWNER_PEM="./wallet/wallet3.pem"
 CONTRACT_WASM="./output/testdex.wasm"
 PROXY="https://devnet-api.elrond.com"
 CHAIN_ID="D"
